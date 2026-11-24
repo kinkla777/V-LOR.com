@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MODERATOR
+  MEMBER
+}
+
+model User {
+  id           String     @id @default(cuid())
+  username     String     @unique
+  email        String     @unique
+  passwordHash String
+  role         Role       @default(MEMBER)
+  bio          String     @default("")
+  createdAt    DateTime   @default(now())
+  messages     Message[]
+  newsPosts    NewsPost[]
+  auditLogs    AuditLog[]
+}
+
+model NewsPost {
+  id        String   @id @default(cuid())
+  title     String
+  summary   String
+  category  String   @default("TEAM NEWS")
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String   @default("")
+  price       Int
+  imageUrl    String   @default("")
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  body      String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String
+  actor     User     @relation(fields: [actorId], references: [id])
+  action    String
+  target    String
+  createdAt DateTime @default(now())
+}
